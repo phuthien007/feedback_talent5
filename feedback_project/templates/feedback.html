@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %} FeedBack {% endblock title %}
+{% block body %}
+<h2 class="text-center"><a href="/">Your Name Company</a></h2>
+<div class="form-3-container section-container section-container-image-bg" style="background-color:aliceblue;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 offset-md-1 form-3-box text-center wow fadeInUp">
+                <form action="" method="post">
+                    <!-- Current Occupation  -->
+                    <fieldset class="form-group p-3">
+                        <legend class="w-auto px-2">Customer Feedback Form</legend>
+                        <div class="form-group text-left">
+                            <label for="ten_khach_hang">Customer Name:</label>
+                            <input type="text" class="form-control " id="ten_khach_hang" placeholder="Enter Your Name"
+                                   name="ten_khach_hang" required>
+                        </div>
+                        <div class="form-group text-left">
+                            <h3>The course wants feedback</h3>
+                            <select name="ten_khoa_hoc" id="khoa_hoc" required>
+                                <option value="">select course</option>
+                                <option value="Phân tích dữ liệu">Phân tích dữ liệu</option>
+                                <option value="Machine Learning">Machine Learning</option>
+                                <option value="Quản trị cơ sở dữ liệu">Quản trị cơ sở dữ liệu</option>
+                                <option value="Khóa vỡ lòng">Khóa vỡ lòng</option>
+                            </select>
+                        </div>
+                        <div class="form-group text-left">
+                            <h3>Please rate the course</h3>
+                            <input type="radio" name="rating" value="1">1
+                            <input type="radio" name="rating" value="2">2
+                            <input type="radio" name="rating" value="3">3
+                            <input type="radio" name="rating" value="4">4
+                            <input type="radio" name="rating" value="5">5
+                            <input type="radio" name="rating" value="6">6
+                            <input type="radio" name="rating" value="7">7
+                            <input type="radio" name="rating" value="8">8
+                            <input type="radio" name="rating" value="9">9
+                            <input type="radio" name="rating" value="10" checked>10
+                        </div>
+                        <div class="form-group text-left">
+                            <label for="phan_hoi">Comment:</label>
+                            <textarea class="form-control" id="phan_hoi"
+                                      placeholder="Tell us what do you liked and/or did not like" name="phan_hoi" rows="6"></textarea>
+                        </div>
+                        <input type="submit" value="Submit" name="Submit" class="btn btn-primary">
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

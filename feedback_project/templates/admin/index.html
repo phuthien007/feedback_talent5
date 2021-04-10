@@ -1,0 +1,33 @@
+{% extends "admin/master.html" %}
+
+{% block main_menu %}
+<ul class="nav navbar-nav">
+
+      {% if current_user.is_authenticated %}
+        <li class="active"><a href="/admin">Home</a></li>
+      <li class=""><a href="/admin/feedback">Feedback</a></li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Chart
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href="/admin/comments_courses">Comments Courses</a></li>
+          <li><a href="/admin/comments_dates">Comments Dates</a></li>
+          <li><a href="/admin/rating">Rating</a></li>
+          <li><a href="/admin/rating_courses">Rating Course</a></li>
+        </ul>
+      </li>
+          <li>
+            <a href="/admin/logoutview/">Logout</a>
+          </li>
+      {% endif %}
+</ul>
+{% endblock %}
+{% block body %}
+{% if current_user.is_authenticated %}
+    <img src="{{ url_for('static',filename='images/talent5.jpg') }}" alt="Talent5" width="100%" height="610px">
+{% else %}
+    {% include 'admin/login.html' %}
+    <img src="{{ url_for('static',filename='images/talent5.jpg') }}" alt="Talent5" width="100%">
+{% endif %}
+
+{% endblock %}

@@ -2,6 +2,8 @@ import uuid
 import io
 import random
 from flask import Response
+from flask_login import login_user, logout_user, current_user
+from flask_mail import Message
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from numpy import unicode
@@ -9,16 +11,23 @@ from sqlalchemy import and_
 from models import FeedBack
 from flask import json, request, render_template, flash, make_response, url_for, redirect
 from settings import *
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 from utils import *
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('home.html')
 
 
+def send_message(customer_name, course_name, rating, comments):
+    mgs= Message('New Feedback Submission', sender='phailamsaonana@gmail.com', recipients=['bkd.hust@gmail.com'])
+    mgs.body=f'''
+    A new feedback    
+    Customer Name: {customer_name}
+    Course Name: {course_name}
+    Rating: {rating}
+    Comments: {comments}
+    '''
+    mail.send(mgs)
 @app.route('/feedback', methods=['GET', 'POST'])
 def feed_back():
     if request.method != 'POST':
@@ -37,98 +46,37 @@ def feed_back():
             flash("You have already submitted feedback",'warning')
             db.session.rollback()
             return redirect(url_for('feed_back'))
+        send_message(customer_name=customer_name, course_name=course_name, rating=rating, comments=comments)
         new_feed = FeedBack(customer_name=customer_name, course_name=course_name, rating=rating, comments=comments)
         db.session.add(new_feed)
         db.session.commit()
+
         return render_template('success.html')
     except Exception as e:
         print(e)
         flash("Information is invalid",'danger')
         return  redirect(url_for('feed_back'))
+@app.route('/', methods=['GET'])
+def home():
+    return redirect(url_for('feed_back'))
 
+@app.route('/admin_login',methods=['GET','POST'])
+def login_admin():
+    if current_user.is_authenticated:
+        return redirect('/admin')
 
+    if request.method == 'POST':
+        username= request.form.get('username')
+        password= request.form.get('pwd')
+        user= db.session.query(User).filter(User.username == username).first()
+        if user:
+            if check_password_hash(user.password, password):
+                login_user(user, remember=True)
+                next = request.args.get('next')
+                print(next)
+                if next:
+                    return redirect(next)
+                return redirect('/admin')
+            flash('Your account is not correct')
+    return render_template('admin/login.html')
 
-@app.route('/rating_courses')
-def rating_course():
-    data= get_data_rating()
-    xs=[];ys=[]
-    for x,y in data:
-        xs.append(x)
-        ys.append(y)
-
-    fig = create_figure(xs ,ys,'rating_coures' ,'courses','number of rating')
-    url='static/images/rating_course.png'
-    if os.path.exists(url):
-        os.remove(url)
-    fig.savefig(url)
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
-
-def create_figure(xs,ys,title,ylabel,xlabel):
-    fig = Figure(figsize=(16,7),dpi=120)
-    axis = fig.add_subplot(1, 1, 1)
-    axis.barh(xs, ys,height = 0.3)
-    axis.set_title(title)
-    axis.set_ylabel(ylabel)
-    axis.set_xlabel(xlabel)
-    axis.set_xticks(ys)
-    return fig
-def create_figure_line(xs,ys,title,ylabel,xlabel):
-    fig = Figure(figsize=(16,7),dpi=120)
-    axis = fig.add_subplot(1, 1, 1)
-    axis.plot(xs, ys,'b*--')
-    axis.set_title(title)
-    axis.set_ylabel(ylabel)
-    axis.set_xlabel(xlabel)
-    axis.set_xticks(xs)
-    axis.grid(axis='y')
-    return fig
-@app.route('/comments_courses')
-def comments_course():
-    data= get_data_comments()
-    xs=[];ys=[]
-    for x,y in data:
-        xs.append(x)
-        ys.append(y)
-    fig = create_figure(xs ,ys,'comments_courses', 'courses','number of comments' )
-    url='static/images/comments_course.png'
-    if os.path.exists(url):
-        os.remove(url)
-    fig.savefig(url)
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
-
-@app.route('/comments_dates')
-def comments_dates():
-    data= get_data_comments_by_date()
-    xs=[];ys=[]
-    for x,y in data:
-        xs.append(str(x))
-        ys.append(y)
-    print(xs,ys)
-    fig = create_figure(xs ,ys,'date' ,'courses','number of comments')
-    url='static/images/comments_dates.png'
-    if os.path.exists(url):
-        os.remove(url)
-    fig.savefig(url)
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
-
-@app.route('/rating')
-def rating():
-    data = get_each_element_rating()
-    xs = np.arange(0,11,1)
-    ys = [0]*11
-    for  y in data:
-        ys[y[0]]+=1
-    fig = create_figure_line(xs, ys, 'number of rating', 'rating', 'ratings')
-    url = 'static/images/rating_line.png'
-    if os.path.exists(url):
-        os.remove(url)
-    fig.savefig(url)
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
